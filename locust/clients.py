@@ -14,12 +14,14 @@ import gzip
 import events
 from locust.exception import LocustError
 
+
 class NoneContext(object):
     def __enter__(self):
         return None
 
     def __exit__(self, exc, value, traceback):
         return True
+
 
 def log_request(f):
     def _wrapper(*args, **kwargs):
@@ -50,8 +52,8 @@ def log_request(f):
             retval.allow_http_error = allow_http_error
             response_time = int((time.time() - start) * 1000)
             if catch_response:
-                retval._trigger_success = lambda : events.request_success.fire(request_method, name, response_time, retval)
-                retval._trigger_failure = lambda e : events.request_failure.fire(request_method, name, response_time, e, None)
+                retval._trigger_success = lambda: events.request_success.fire(request_method, name, response_time, retval)
+                retval._trigger_failure = lambda e: events.request_failure.fire(request_method, name, response_time, e, None)
             else:
                 events.request_success.fire(request_method, name, response_time, retval)
             return retval
@@ -77,6 +79,7 @@ def log_request(f):
 
     return _wrapper
 
+
 class HttpBasicAuthHandler(urllib2.BaseHandler):
     def __init__(self, username, password):
         self.username = username
@@ -89,6 +92,7 @@ class HttpBasicAuthHandler(urllib2.BaseHandler):
 
     #Do the same thing for https requests
     https_request = http_request
+
 
 class HttpResponse(object):
     """
@@ -153,11 +157,12 @@ class HttpResponse(object):
 
     data = property(_get_data, _set_data)
 
+
 class HttpBrowser(object):
     """
     Class for performing web requests and holding session cookie between requests (in order
-    to be able to log in to websites). 
-    
+    to be able to log in to websites).
+
     Logs each request so that locust can display statistics.
     """
 
@@ -165,7 +170,7 @@ class HttpBrowser(object):
         self.base_url = base_url
         self.gzip = gzip
         self.new_session()
-    
+
     def new_session(self):
         """
         Get a new HTTP session for this HttpBrowser instance
@@ -192,9 +197,9 @@ class HttpBrowser(object):
     def get(self, path, headers={}, name=None, **kwargs):
         """
         Make an HTTP GET request.
-        
+
         Arguments:
-        
+
         * *path* is the relative path to request.
         * *headers* is an optional dict with HTTP request headers
         * *name* is an optional argument that can be specified to use as label in the statistics instead of the path
@@ -204,18 +209,18 @@ class HttpBrowser(object):
         * *allow_http_error* os an optional boolean argument, that, if set, can be used to not mark responses with
           HTTP errors as failures. If an HTTPError occurs, it will be available in the *exception* attribute of the
           response.
-        
+
         Returns an HttpResponse instance, or None if the request failed.
-        
+
         Example::
-        
+
             client = HttpBrowser("http://example.com")
             response = client.get("/")
-        
+
         Example using the with statement::
-        
+
             from locust import ResponseError
-            
+
             with self.client.get("/inbox", catch_response=True) as response:
                 if response.data == "fail":
                     raise ResponseError("Request failed")
@@ -225,9 +230,9 @@ class HttpBrowser(object):
     def post(self, path, data, headers={}, name=None, **kwargs):
         """
         Make an HTTP POST request.
-        
+
         Arguments:
-        
+
         * *path* is the relative path to request.
         * *data* dict with the data that will be sent in the body of the POST request
         * *headers* is an optional dict with HTTP request headers
@@ -238,18 +243,18 @@ class HttpBrowser(object):
         * *allow_http_error* os an optional boolean argument, that, if set, can be used to not mark responses with
           HTTP errors as failures. If an HTTPError occurs, it will be available in the *exception* attribute of the
           response.
-        
+
         Returns an HttpResponse instance, or None if the request failed.
-        
+
         Example::
-        
+
             client = HttpBrowser("http://example.com")
             response = client.post("/post", {"user":"joe_hill"})
-        
+
         Example using the with statement::
-        
+
             from locust import ResponseError
-            
+
             with self.client.post("/inbox", {"user":"ada", content="Hello!"}, catch_response=True) as response:
                 if response.data == "fail":
                     raise ResponseError("Posting of inbox message failed")
