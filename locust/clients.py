@@ -279,9 +279,13 @@ class HttpBrowser(object):
             try:
                 data = urllib.urlencode(data)
             except TypeError:
-                pass # ignore if someone sends in an already prepared string
-
-        url = self.base_url + path
+                pass  # ignore if someone sends in an already prepared string
+        parsed = urlparse(path)
+        if not parsed.hostname:
+            # this is not an absolute URL add the base path
+            url = self.base_url + path
+        else:
+            url = path
         request = urllib2.Request(url, data, headers)
         request.get_method = lambda: method
         try:
