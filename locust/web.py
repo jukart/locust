@@ -39,7 +39,7 @@ def index():
         slave_count = runners.locust_runner.slave_count
     else:
         slave_count = 0
-    
+
     return render_template("index.html",
         state=runners.locust_runner.state,
         is_distributed=is_distributed,
@@ -70,7 +70,7 @@ def stop():
 @app.route("/ramp", methods=["POST"])
 def ramp():
     from ramping import start_ramping
-    
+
     init_clients = int(request.form["init_count"])
     hatch_rate = int(request.form["hatch_rate"])
     hatch_stride = int(request.form["hatch_stride"])
@@ -89,7 +89,7 @@ def ramp():
 def reset_stats():
     RequestStats.reset_all()
     return "ok"
-    
+
 @app.route("/stats/requests/csv")
 def request_stats_csv():
     rows = [
@@ -100,13 +100,13 @@ def request_stats_csv():
             '"# failures"',
             '"Median response time"',
             '"Average response time"',
-            '"Min response time"', 
+            '"Min response time"',
             '"Max response time"',
             '"Average Content-Length"',
             '"Reqests/s"',
         ])
     ]
-    
+
     for s in chain(_sort_stats(runners.locust_runner.request_stats), [RequestStats.sum_stats("Total", full_request_history=True)]):
         rows.append('"%s","%s",%i,%i,%i,%i,%i,%i,%i,%.2f' % (
             s.method,
@@ -159,11 +159,11 @@ def distribution_stats_csv():
 @app.route('/stats/requests')
 def request_stats():
     global _request_stats_context_cache
-    
+
     if not _request_stats_context_cache or _request_stats_context_cache["last_time"] < time() - _request_stats_context_cache.get("cache_time", DEFAULT_CACHE_TIME):
         cache_time = _request_stats_context_cache.get("cache_time", DEFAULT_CACHE_TIME)
         now = time()
-        
+
         stats = []
         for s in chain(_sort_stats(runners.locust_runner.request_stats), [RequestStats.sum_stats("Total")]):
             stats.append({
@@ -172,18 +172,18 @@ def request_stats():
                 "num_reqs": s.num_reqs,
                 "num_failures": s.num_failures,
                 "avg_response_time": s.avg_response_time,
-                "min_response_time": s.min_response_time,
+                "min_response_time": s.min_response_time or 0,
                 "max_response_time": s.max_response_time,
                 "current_rps": s.current_rps,
                 "median_response_time": s.median_response_time,
                 "avg_content_length": s.avg_content_length,
             })
-        
+
         report = {"stats":stats, "errors":list(runners.locust_runner.errors.iteritems())}
         if stats:
             report["total_rps"] = stats[len(stats)-1]["current_rps"]
             report["fail_ratio"] = RequestStats.sum_stats("Total").fail_ratio
-            
+
             # since generating a total response times dict with all response times from all
             # urls is slow, we make a new total response time dict which will consist of one
             # entry per url with the median response time as key and the number of requests as
@@ -191,14 +191,14 @@ def request_stats():
             response_times = defaultdict(int) # used for calculating total median
             for i in xrange(len(stats)-1):
                 response_times[stats[i]["median_response_time"]] += stats[i]["num_reqs"]
-            
+
             # calculate total median
             stats[len(stats)-1]["median_response_time"] = median_from_dict(stats[len(stats)-1]["num_reqs"], response_times)
-        
+
         is_distributed = isinstance(runners.locust_runner, MasterLocustRunner)
         if is_distributed:
             report["slave_count"] = runners.locust_runner.slave_count
-        
+
         report["state"] = runners.locust_runner.state
         report["user_count"] = runners.locust_runner.user_count
 
@@ -222,7 +222,7 @@ def start(locust, hatch_rate, num_clients, num_requests, ramp):
     _num_clients = num_clients
     _num_requests = num_requests
     _ramp = ramp
-    
+
     wsgi.WSGIServer(('', 8089), app, log=None).serve_forever()
 
 def _sort_stats(stats):

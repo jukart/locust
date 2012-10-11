@@ -49,7 +49,7 @@ class RequestStats(object):
         self.num_failures = 0
         self.total_response_time = 0
         self.response_times = {}
-        self.min_response_time = 0
+        self.min_response_time = None
         self.max_response_time = 0
         self.last_request_timestamp = int(time.time())
         self.num_reqs_per_sec = {}
@@ -161,7 +161,7 @@ class RequestStats(object):
         self.num_failures = self.num_failures + other.num_failures
         self.total_response_time = self.total_response_time + other.total_response_time
         self.max_response_time = max(self.max_response_time, other.max_response_time)
-        self.min_response_time = min(self.min_response_time, other.min_response_time) or other.min_response_time
+        self.min_response_time = min(self.min_response_time or 0, self.min_response_time or 0) or other.min_response_time
         self.total_content_length = self.total_content_length + other.total_content_length
 
         if full_request_history:
@@ -185,7 +185,7 @@ class RequestStats(object):
             'num_reqs': self.num_reqs,
             'num_failures': self.num_failures,
             'avg': self.avg_response_time,
-            'min': self.min_response_time,
+            'min': self.min_response_time or 0,
             'max': self.max_response_time,
             'current_req_per_sec': self.current_rps
         }
@@ -201,7 +201,7 @@ class RequestStats(object):
             self.num_reqs,
             "%d(%.2f%%)" % (self.num_failures, fail_percent),
             self.avg_response_time,
-            self.min_response_time,
+            self.min_response_time or 0,
             self.max_response_time,
             self.median_response_time or 0,
             self.current_rps or 0
