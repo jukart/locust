@@ -156,8 +156,8 @@ class HttpResponse(object):
 class HttpBrowser(object):
     """
     Class for performing web requests and holding session cookie between requests (in order
-    to be able to log in to websites). 
-    
+    to be able to log in to websites).
+
     Logs each request so that locust can display statistics.
     """
 
@@ -186,9 +186,9 @@ class HttpBrowser(object):
     def get(self, path, headers={}, name=None, **kwargs):
         """
         Make an HTTP GET request.
-        
+
         Arguments:
-        
+
         * *path* is the relative path to request.
         * *headers* is an optional dict with HTTP request headers
         * *name* is an optional argument that can be specified to use as label in the statistics instead of the path
@@ -198,18 +198,18 @@ class HttpBrowser(object):
         * *allow_http_error* os an optional boolean argument, that, if set, can be used to not mark responses with
           HTTP errors as failures. If an HTTPError occurs, it will be available in the *exception* attribute of the
           response.
-        
+
         Returns an HttpResponse instance, or None if the request failed.
-        
+
         Example::
-        
+
             client = HttpBrowser("http://example.com")
             response = client.get("/")
-        
+
         Example using the with statement::
-        
+
             from locust import ResponseError
-            
+
             with self.client.get("/inbox", catch_response=True) as response:
                 if response.data == "fail":
                     raise ResponseError("Request failed")
@@ -219,9 +219,9 @@ class HttpBrowser(object):
     def post(self, path, data, headers={}, name=None, **kwargs):
         """
         Make an HTTP POST request.
-        
+
         Arguments:
-        
+
         * *path* is the relative path to request.
         * *data* dict with the data that will be sent in the body of the POST request
         * *headers* is an optional dict with HTTP request headers
@@ -232,18 +232,18 @@ class HttpBrowser(object):
         * *allow_http_error* os an optional boolean argument, that, if set, can be used to not mark responses with
           HTTP errors as failures. If an HTTPError occurs, it will be available in the *exception* attribute of the
           response.
-        
+
         Returns an HttpResponse instance, or None if the request failed.
-        
+
         Example::
-        
+
             client = HttpBrowser("http://example.com")
             response = client.post("/post", {"user":"joe_hill"})
-        
+
         Example using the with statement::
-        
+
             from locust import ResponseError
-            
+
             with self.client.post("/inbox", {"user":"ada", content="Hello!"}, catch_response=True) as response:
                 if response.data == "fail":
                     raise ResponseError("Posting of inbox message failed")
@@ -269,8 +269,13 @@ class HttpBrowser(object):
                 data = urllib.urlencode(data)
             except TypeError:
                 pass # ignore if someone sends in an already prepared string
+        parsed = urlparse(path)
+        if not parsed.hostname:
+            # this is not an absolute URL add the base path
+            url = self.base_url + path
+        else:
+            url = path
 
-        url = self.base_url + path
         request = urllib2.Request(url, data, headers)
         request.get_method = lambda: method
         try:
